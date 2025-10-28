@@ -78,6 +78,7 @@ class MainApp extends StatelessWidget {
           fillColor: Colors.white,
         ),
       ),
+      debugShowCheckedModeBanner: false, // <- Aquí quitamos la etiqueta de debug
       initialRoute: '/',
       onGenerateRoute: (settings) {
         // Verificar autenticación para rutas protegidas

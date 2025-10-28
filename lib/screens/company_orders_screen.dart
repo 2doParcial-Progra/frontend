@@ -153,30 +153,79 @@ class _CompanyOrdersScreenState extends State<CompanyOrdersScreen> {
                                         ),
                                       ),
                                       const Spacer(),
-                                      PopupMenuButton<int>(
-                                        onSelected: (status) => _updateOrderStatus(order, status),
-                                        itemBuilder: (context) => [
-                                          PopupMenuItem(
-                                            value: 0,
-                                            enabled: order.status != 0,
-                                            child: const Text('Marcar como Nuevo'),
-                                          ),
-                                          PopupMenuItem(
-                                            value: 1,
-                                            enabled: order.status != 1,
-                                            child: const Text('Marcar como Enviado'),
-                                          ),
-                                          PopupMenuItem(
-                                            value: 2,
-                                            enabled: order.status != 2,
-                                            child: const Text('Marcar como Entregado'),
-                                          ),
-                                          PopupMenuItem(
-                                            value: 3,
-                                            enabled: order.status != 3,
-                                            child: const Text('Marcar como Cancelado'),
-                                          ),
-                                        ],
+                                      // Botones de acción rápida según el estado actual
+                                      if (order.status == 0) ...[
+                                        // Para pedidos nuevos
+                                        TextButton.icon(
+                                          onPressed: () => _updateOrderStatus(order, 1),
+                                          icon: const Icon(Icons.check_circle, color: Colors.green),
+                                          label: const Text('Aceptar', style: TextStyle(color: Colors.green)),
+                                        ),
+                                        TextButton.icon(
+                                          onPressed: () => _updateOrderStatus(order, 3),
+                                          icon: const Icon(Icons.cancel, color: Colors.red),
+                                          label: const Text('Rechazar', style: TextStyle(color: Colors.red)),
+                                        ),
+                                      ] else if (order.status == 1) ...[
+                                        // Para pedidos enviados
+                                        TextButton.icon(
+                                          onPressed: () => _updateOrderStatus(order, 2),
+                                          icon: const Icon(Icons.delivery_dining, color: Colors.green),
+                                          label: const Text('Marcar Entregado', style: TextStyle(color: Colors.green)),
+                                        ),
+                                      ],
+                                      // Menú con todas las opciones
+                                      IconButton(
+                                        icon: const Icon(Icons.more_vert),
+                                        onPressed: () {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title: const Text('Cambiar Estado'),
+                                              content: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  ListTile(
+                                                    enabled: order.status != 0,
+                                                    leading: const Icon(Icons.fiber_new),
+                                                    title: const Text('Nuevo'),
+                                                    onTap: () {
+                                                      Navigator.pop(context);
+                                                      _updateOrderStatus(order, 0);
+                                                    },
+                                                  ),
+                                                  ListTile(
+                                                    enabled: order.status != 1,
+                                                    leading: const Icon(Icons.local_shipping),
+                                                    title: const Text('Enviado'),
+                                                    onTap: () {
+                                                      Navigator.pop(context);
+                                                      _updateOrderStatus(order, 1);
+                                                    },
+                                                  ),
+                                                  ListTile(
+                                                    enabled: order.status != 2,
+                                                    leading: const Icon(Icons.check_circle),
+                                                    title: const Text('Entregado'),
+                                                    onTap: () {
+                                                      Navigator.pop(context);
+                                                      _updateOrderStatus(order, 2);
+                                                    },
+                                                  ),
+                                                  ListTile(
+                                                    enabled: order.status != 3,
+                                                    leading: const Icon(Icons.cancel),
+                                                    title: const Text('Cancelado'),
+                                                    onTap: () {
+                                                      Navigator.pop(context);
+                                                      _updateOrderStatus(order, 3);
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+                                        },
                                       ),
                                     ],
                                   ),
