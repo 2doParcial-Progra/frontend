@@ -1,0 +1,46 @@
+name: ecommercefrontend
+description: >
+  Ecommerce frontend en Flutter — modularizado con servicios, API REST y manejo seguro de sesión.
+publish_to: 'none'
+
+version: 0.1.0
+
+environment:
+  sdk: ^3.9.2
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Conexión HTTP / API
+  http: ^1.2.2
+  connectivity_plus: ^6.0.3
+  dio: ^5.7.0
+
+  # Almacenamiento seguro / Sesión
+  flutter_secure_storage: ^9.2.2
+  shared_preferences: ^2.3.2
+
+  # Estado / Lógica
+  provider: ^6.1.2
+
+  # UI / Utilidades
+  google_fonts: ^6.2.1
+  intl: ^0.19.0
+  flutter_spinkit: ^5.2.1
+  cached_network_image: ^3.4.1
+  pull_to_refresh: ^2.0.0
+
+  # Autenticación / Utilidades
+  jwt_decoder: ^2.0.1
+  url_launcher: ^6.3.1
+  package_info_plus: ^8.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
