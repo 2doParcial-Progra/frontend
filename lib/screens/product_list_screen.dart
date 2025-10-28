@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../services/auth_service.dart';
 import '../services/product_service.dart';
+import '../models/order.dart';
+import '../services/order_service.dart';
+import '../utils/app_routes.dart';
 import 'product_detail_screen.dart';
 import 'product_form_screen.dart';
 
@@ -15,9 +18,18 @@ class ProductListScreen extends StatefulWidget {
 
 class _ProductListState extends State<ProductListScreen> {
   final ProductService _productService = ProductService();
+  final OrderService _orderService = OrderService();
   List<Product> _products = [];
   bool _isLoading = true;
   String? _error;
+  
+  // Filtros
+  double? _minPrice;
+  double? _maxPrice;
+  int? _selectedCompanyId;
+  
+  // Control de cantidad para pedidos
+  final Map<int, int> _quantities = {};
 
   @override
   void initState() {
@@ -33,9 +45,10 @@ class _ProductListState extends State<ProductListScreen> {
         _error = null;
       });
 
-      final authService = context.read<AuthService>();
       final products = await _productService.getProducts(
-        companyId: authService.isCompany ? authService.currentUser?.id : null,
+        companyId: _selectedCompanyId,
+        minPrice: _minPrice,
+        maxPrice: _maxPrice,
       );
 
       if (!mounted) return;
@@ -52,22 +65,114 @@ class _ProductListState extends State<ProductListScreen> {
     }
   }
 
+  Widget _buildFilters() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        children: [
+          // Filtro de precio
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Precio mínimo',
+                    prefixText: '\$',
+                  ),
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    setState(() {
+                      _minPrice = double.tryParse(value);
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Precio máximo',
+                    prefixText: '\$',
+                  ),
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    setState(() {
+                      _maxPrice = double.tryParse(value);
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ElevatedButton(
+            onPressed: _loadProducts,
+            child: const Text('Aplicar filtros'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _createOrder(Product product) async {
+    try {
+      final quantity = _quantities[product.id] ?? 1;
+      
+      if (quantity > (product.stock ?? 0)) {
+        throw Exception('Stock insuficiente');
+      }
+
+      final order = Order.create(
+        companyId: product.companyId!,
+        items: [
+          OrderItem.request(
+            productId: product.id!,
+            quantity: quantity,
+          ),
+        ],
+      );
+
+      await _orderService.createOrder(order);
+      
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pedido realizado con éxito')),
+      );
+      
+      // Recargar productos para actualizar stock
+      await _loadProducts();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authService = context.watch<AuthService>();
-
+    
     return Scaffold(
       backgroundColor: const Color(0xFFFAF0E6),
       appBar: AppBar(
         title: const Text('Productos'),
         backgroundColor: const Color(0xFF8B4513),
         actions: [
+          // Botón de órdenes para clientes
+          if (!authService.isCompany)
+            IconButton(
+              icon: const Icon(Icons.receipt_long),
+              onPressed: () {
+                Navigator.pushNamed(context, AppRoutes.clientOrders);
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.exit_to_app),
             onPressed: () async {
               await authService.logout();
-              if (!mounted) return; // <-- mounted antes de usar context
-              Navigator.of(context).pushReplacementNamed('/login');
+              if (!mounted) return;
+              Navigator.of(context).pushReplacementNamed(AppRoutes.login);
             },
           ),
         ],

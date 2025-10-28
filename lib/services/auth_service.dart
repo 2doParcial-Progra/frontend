@@ -65,31 +65,9 @@ class AuthService extends ChangeNotifier {
       _currentUser = User.fromJson(userData);
       print('Current user role: ${_currentUser?.role}'); // Debug
       print('Is company: ${_currentUser?.role == Role.company}'); // Debug
-      
-      // Verificar si el token tiene el rol correcto
-      final token = await _apiService.getToken();
-      if (token != null) {
-        final parts = token.split('.');
-        if (parts.length > 1) {
-          final payload = parts[1];
-          final normalized = base64Url.normalize(payload);
-          final decodedPayload = utf8.decode(base64Url.decode(normalized));
-          final payloadMap = json.decode(decodedPayload);
-          
-          final tokenRole = payloadMap['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-          final isCompanyInDb = _currentUser?.role == Role.company;
-          
-          if (isCompanyInDb && tokenRole != 'Empresa') {
-            // El rol en la base de datos es empresa pero el token no lo refleja
-            await clearSession();
-            throw Exception('Hay un problema con los permisos de tu cuenta. Por favor, contacta al soporte técnico. (Error: Token role mismatch)');
-          }
-        }
-      }
-      
       notifyListeners();
     } catch (e) {
-      await clearSession();
+      await logout();
       rethrow;
     }
   }

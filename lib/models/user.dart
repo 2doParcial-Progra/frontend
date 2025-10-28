@@ -21,7 +21,7 @@ class User {
     return User(
       id: json['id'] as int?,
       email: json['email'] as String?,
-      role: roleValue != null ? (roleValue == 1 ? Role.company : Role.client) : null,
+      role: roleValue != null ? (roleValue == 1 ? Role.client : Role.company) : null,
       companyName: json['companyName'] as String?,
     );
   }
